@@ -5,6 +5,8 @@ import datetime as dt
 from datetime import timedelta
 from amadeus import ResponseError
 import time
+import dropbox
+from dropbox.exceptions import ApiError
 
 def collect_cross_country_flights(api_key, api_secret, east_coast, west_coast, 
                                   days_ahead=30, airlines=['B6', 'F9', 'AS', 'HA', 'UA', 'AA', 'DL']):
@@ -123,14 +125,50 @@ def collect_cross_country_flights(api_key, api_secret, east_coast, west_coast,
     return pd.DataFrame(all_flights)
 
 
+def upload_to_dropbox(file_path, dropbox_token, dropbox_folder="/flight_data"):
+    """
+    Upload a file to Dropbox
+    
+    Args:
+        file_path: Local path to the file
+        dropbox_token: Dropbox access token
+        dropbox_folder: Destination folder in Dropbox (default: /flight_data)
+    """
+    try:
+        dbx = dropbox.Dropbox(dropbox_token)
+        
+        # Get filename
+        filename = os.path.basename(file_path)
+        dropbox_path = f"{dropbox_folder}/{filename}"
+        
+        # Read file and upload
+        with open(file_path, 'rb') as f:
+            print(f"Uploading {filename} to Dropbox...")
+            dbx.files_upload(f.read(), dropbox_path, mode=dropbox.files.WriteMode.overwrite)
+            print(f"✓ Successfully uploaded to {dropbox_path}")
+            
+    except ApiError as e:
+        print(f"✗ Dropbox API error: {e}")
+        raise
+    except Exception as e:
+        print(f"✗ Upload error: {e}")
+        raise
+
+
 if __name__ == "__main__":
+    # Get Dropbox token from environment variable
+    dropbox_token = os.environ.get('DROPBOX_ACCESS_TOKEN')
+    
+    if not dropbox_token:
+        raise ValueError("DROPBOX_ACCESS_TOKEN not found in environment variables")
+    
     # ⚠️ HARDCODED CREDENTIALS - Replace with your actual credentials
-    api_key = "vAI30ciwEo5iC9jUgKFV2sGxGkXMyMYA"
-    api_secret = "G2J3oU4f5pPHijlf"
+    api_key = "YOUR_API_KEY_HERE"
+    api_secret = "YOUR_API_SECRET_HERE"
     
     # Define your airports
-    east_coast = ['JFK', 'BOS', 'PHL'] # New York, Boston, Philadelphia: major east coast airports
-    west_coast = ['LAX', 'SFO', 'SEA'] # Los Angeles, San Francisco, Seattle: major west coast airports
+    east_coast = ['JFK', 'BOS', 'EWR', 'DCA', 'PHL']
+    west_coast = ['LAX', 'SFO', 'SEA', 'PDX', 'SAN']
     
     # Collect data
     print("=" * 60)
@@ -144,10 +182,10 @@ if __name__ == "__main__":
         days_ahead=30
     )
     
-    # Create data directory if it doesn't exist
+    # Create temporary data directory
     os.makedirs('data', exist_ok=True)
     
-    # Save with timestamp in data folder
+    # Save with timestamp
     timestamp = dt.datetime.now().strftime('%Y%m%d_%H%M%S')
     filename = f'data/flight_data_{timestamp}.csv'
     df.to_csv(filename, index=False)
@@ -155,7 +193,16 @@ if __name__ == "__main__":
     print("=" * 60)
     print("COLLECTION COMPLETE")
     print("=" * 60)
-    print(f"✓ Data saved to: {filename}")
+    print(f"✓ Data saved locally to: {filename}")
     print(f"✓ Total records: {len(df)}")
     print(f"✓ Columns: {', '.join(df.columns.tolist())}")
+    
+    # Upload to Dropbox
+    print("=" * 60)
+    print("UPLOADING TO DROPBOX")
+    print("=" * 60)
+    upload_to_dropbox(filename, dropbox_token)
+    
+    print("=" * 60)
+    print("ALL OPERATIONS COMPLETE")
     print("=" * 60)

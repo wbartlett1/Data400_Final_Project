@@ -163,12 +163,12 @@ if __name__ == "__main__":
         raise ValueError("DROPBOX_ACCESS_TOKEN not found in environment variables")
     
     # ⚠️ HARDCODED CREDENTIALS - Replace with your actual credentials
-    api_key = "YOUR_API_KEY_HERE"
-    api_secret = "YOUR_API_SECRET_HERE"
+    api_key = "vAI30ciwEo5iC9jUgKFV2sGxGkXMyMYA"
+    api_secret = "G2J3oU4f5pPHijlf"
     
     # Define your airports
-    east_coast = ['JFK', 'BOS', 'EWR', 'DCA', 'PHL']
-    west_coast = ['LAX', 'SFO', 'SEA', 'PDX', 'SAN']
+    east_coast = ['JFK', 'BOS', 'PHL']
+    west_coast = ['LAX', 'SFO', 'SEA']
     
     # Collect data
     print("=" * 60)

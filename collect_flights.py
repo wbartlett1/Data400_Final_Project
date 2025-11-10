@@ -8,15 +8,15 @@ import time
 import dropbox
 from dropbox.exceptions import ApiError
 
-def collect_cross_country_flights(api_key, api_secret, east_coast, west_coast, 
+def collect_cross_country_flights(api_credentials_list, east_coast, west_coast, 
                                   days_ahead=30, airlines=['B6', 'F9', 'AS', 'HA', 'UA', 'AA', 'DL']):
     """
     Simple function to collect cross-country flight data.
     Only searches flights BETWEEN east and west coast (not within same coast).
+    Rotates through multiple API credentials to avoid rate limits.
     
     Args:
-        api_key: Amadeus API key
-        api_secret: Amadeus API secret
+        api_credentials_list: List of tuples [(api_key_1, api_secret_1), (api_key_2, api_secret_2), ...]
         east_coast: List of east coast airport codes
         west_coast: List of west coast airport codes
         days_ahead: Number of days ahead to search (default 30)
@@ -27,11 +27,9 @@ def collect_cross_country_flights(api_key, api_secret, east_coast, west_coast,
     Returns: DataFrame with all flight data
     """
     
-    # Initialize Amadeus client
-    amadeus = Client(client_id=api_key, client_secret=api_secret)
-    
     all_flights = []
     api_calls = 0
+    credential_index = 0  # Track which API key we're using
     
     # Create cross-country routes only (east-to-west and west-to-east)
     routes = []
@@ -41,6 +39,7 @@ def collect_cross_country_flights(api_key, api_secret, east_coast, west_coast,
             routes.append((west, east))  # West to East
     
     print(f"Starting collection for {len(routes)} cross-country routes...")
+    print(f"Using {len(api_credentials_list)} different API credentials for rotation")
     if airlines:
         print(f"Filtering for airlines: {', '.join(airlines)}")
     print(f"This will make {len(routes) * days_ahead} API calls\n")
@@ -52,6 +51,14 @@ def collect_cross_country_flights(api_key, api_secret, east_coast, west_coast,
         # Loop through each day
         for day in range(1, days_ahead + 1):
             departure_date = (dt.datetime.now() + timedelta(days=day)).strftime('%Y-%m-%d')
+            
+            # Rotate through API credentials
+            api_key, api_secret = api_credentials_list[credential_index]
+            credential_index = (credential_index + 1) % len(api_credentials_list)
+            
+            # Initialize Amadeus client with current credentials
+            amadeus = Client(client_id=api_key, client_secret=api_secret)
+            
             api_calls += 1
             
             try:
@@ -107,7 +114,7 @@ def collect_cross_country_flights(api_key, api_secret, east_coast, west_coast,
                     }
                     all_flights.append(flight_info)
                 
-                print(f"  Day {day}: Found {len(response.data)} flights")
+                print(f"  Day {day}: Found {len(response.data)} flights (using API key #{credential_index})")
                 
             except ResponseError as error:
                 print(f"  Day {day}: API Error - {error}")
@@ -162,9 +169,12 @@ if __name__ == "__main__":
     if not dropbox_token:
         raise ValueError("DROPBOX_ACCESS_TOKEN not found in environment variables")
     
-    # ⚠️ HARDCODED CREDENTIALS - Replace with your actual credentials
-    api_key = "vAI30ciwEo5iC9jUgKFV2sGxGkXMyMYA"
-    api_secret = "G2J3oU4f5pPHijlf"
+    # ⚠️ HARDCODED CREDENTIALS - All 3 API key pairs
+    api_credentials = [
+        ("tJXhK2xH0TNcJSYJP67uuv14b9xGUvAb", "z4OPCHJTAsLHQQvu"),
+        ("KQThHXQfHxA8YaBIdXCm9cW9ZoJpwwV2", "GqLFKVvWBFoUhyiJ"),
+        ("RAoNuXvgY1o9ssOCOUuB15GQm9BXYiJN", "BgFW0IWAHRI9Wnri")
+    ]
     
     # Define your airports
     east_coast = ['JFK', 'BOS', 'PHL']
@@ -175,11 +185,10 @@ if __name__ == "__main__":
     print("FLIGHT DATA COLLECTION STARTING")
     print("=" * 60)
     df = collect_cross_country_flights(
-        api_key, 
-        api_secret, 
+        api_credentials,  # Pass list of credentials
         east_coast, 
         west_coast, 
-        days_ahead=30
+        days_ahead=14
     )
     
     # Create temporary data directory

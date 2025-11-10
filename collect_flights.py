@@ -14,6 +14,7 @@ def collect_cross_country_flights(api_credentials_list, east_coast, west_coast,
     Simple function to collect cross-country flight data.
     Only searches flights BETWEEN east and west coast (not within same coast).
     Rotates through multiple API credentials to avoid rate limits.
+    Automatically skips exhausted API keys.
     
     Args:
         api_credentials_list: List of tuples [(api_key_1, api_secret_1), (api_key_2, api_secret_2), ...]
@@ -29,7 +30,8 @@ def collect_cross_country_flights(api_credentials_list, east_coast, west_coast,
     
     all_flights = []
     api_calls = 0
-    credential_index = 0  # Track which API key we're using
+    credential_index = 0
+    exhausted_credentials = set()  # Track which credentials have hit limits
     
     # Create cross-country routes only (east-to-west and west-to-east)
     routes = []
@@ -52,82 +54,123 @@ def collect_cross_country_flights(api_credentials_list, east_coast, west_coast,
         for day in range(1, days_ahead + 1):
             departure_date = (dt.datetime.now() + timedelta(days=day)).strftime('%Y-%m-%d')
             
-            # Rotate through API credentials
-            api_key, api_secret = api_credentials_list[credential_index]
-            credential_index = (credential_index + 1) % len(api_credentials_list)
+            # Try each credential until one works
+            success = False
+            attempts = 0
+            max_attempts = len(api_credentials_list)
             
-            # Initialize Amadeus client with current credentials
-            amadeus = Client(client_id=api_key, client_secret=api_secret)
-            
-            api_calls += 1
-            
-            try:
-                # Build API parameters
-                params = {
-                    'originLocationCode': origin,
-                    'destinationLocationCode': destination,
-                    'departureDate': departure_date,
-                    'adults': 1,
-                    'max': 50
-                }
+            while not success and attempts < max_attempts:
+                # Find next non-exhausted credential
+                while credential_index in exhausted_credentials and len(exhausted_credentials) < len(api_credentials_list):
+                    credential_index = (credential_index + 1) % len(api_credentials_list)
                 
-                # Add airline filter if specified
-                if airlines:
-                    params['includedAirlineCodes'] = ','.join(airlines)
+                # Check if all credentials are exhausted
+                if len(exhausted_credentials) >= len(api_credentials_list):
+                    print(f"  ⚠️  All API credentials exhausted!")
+                    break
                 
-                # Make API call
-                response = amadeus.shopping.flight_offers_search.get(**params)
+                api_key, api_secret = api_credentials_list[credential_index]
+                current_cred = credential_index + 1  # For display (1-indexed)
                 
-                # Capture collection timestamp for this API call
-                collection_time = dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                # Initialize Amadeus client with current credentials
+                amadeus = Client(client_id=api_key, client_secret=api_secret)
                 
-                # Process each flight
-                for offer in response.data:
-                    segments = offer['itineraries'][0]['segments']
-                    
-                    # Get aircraft types for all segments
-                    aircraft_types = [seg.get('aircraft', {}).get('code', 'Unknown') for seg in segments]
-                    
-                    # Get cabin class (from first traveler's first segment)
-                    cabin_class = 'Unknown'
-                    try:
-                        cabin_class = offer['travelerPricings'][0]['fareDetailsBySegment'][0]['cabin']
-                    except (KeyError, IndexError):
-                        pass
-                    
-                    flight_info = {
-                        'time_collected': collection_time,
-                        'origin': origin,
-                        'destination': destination,
-                        'departure_date': departure_date,
-                        'days_until_departure': day,
-                        'price': float(offer['price']['total']),
-                        'currency': offer['price']['currency'],
-                        'airline': offer['validatingAirlineCodes'][0],
-                        'number_of_stops': len(segments) - 1,
-                        'departure_time': segments[0]['departure']['at'],
-                        'arrival_time': segments[-1]['arrival']['at'],
-                        'total_duration': offer['itineraries'][0]['duration'],
-                        'aircraft_type': ','.join(aircraft_types),
-                        'cabin_class': cabin_class,
-                        'bookable_seats': offer.get('numberOfBookableSeats', None)
+                api_calls += 1
+                attempts += 1
+                
+                try:
+                    # Build API parameters
+                    params = {
+                        'originLocationCode': origin,
+                        'destinationLocationCode': destination,
+                        'departureDate': departure_date,
+                        'adults': 1,
+                        'max': 50
                     }
-                    all_flights.append(flight_info)
-                
-                print(f"  Day {day}: Found {len(response.data)} flights (using API key #{credential_index})")
-                
-            except ResponseError as error:
-                print(f"  Day {day}: API Error - {error}")
-            except Exception as e:
-                print(f"  Day {day}: Error - {e}")
+                    
+                    # Add airline filter if specified
+                    if airlines:
+                        params['includedAirlineCodes'] = ','.join(airlines)
+                    
+                    # Make API call
+                    response = amadeus.shopping.flight_offers_search.get(**params)
+                    
+                    # Capture collection timestamp for this API call
+                    collection_time = dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    
+                    # Process each flight
+                    for offer in response.data:
+                        segments = offer['itineraries'][0]['segments']
+                        
+                        # Get aircraft types for all segments
+                        aircraft_types = [seg.get('aircraft', {}).get('code', 'Unknown') for seg in segments]
+                        
+                        # Get cabin class (from first traveler's first segment)
+                        cabin_class = 'Unknown'
+                        try:
+                            cabin_class = offer['travelerPricings'][0]['fareDetailsBySegment'][0]['cabin']
+                        except (KeyError, IndexError):
+                            pass
+                        
+                        flight_info = {
+                            'time_collected': collection_time,
+                            'origin': origin,
+                            'destination': destination,
+                            'departure_date': departure_date,
+                            'days_until_departure': day,
+                            'price': float(offer['price']['total']),
+                            'currency': offer['price']['currency'],
+                            'airline': offer['validatingAirlineCodes'][0],
+                            'number_of_stops': len(segments) - 1,
+                            'departure_time': segments[0]['departure']['at'],
+                            'arrival_time': segments[-1]['arrival']['at'],
+                            'total_duration': offer['itineraries'][0]['duration'],
+                            'aircraft_type': ','.join(aircraft_types),
+                            'cabin_class': cabin_class,
+                            'bookable_seats': offer.get('numberOfBookableSeats', None)
+                        }
+                        all_flights.append(flight_info)
+                    
+                    print(f"  Day {day}: Found {len(response.data)} flights (API key #{current_cred})")
+                    success = True
+                    
+                    # Move to next credential for next call
+                    credential_index = (credential_index + 1) % len(api_credentials_list)
+                    
+                except ResponseError as error:
+                    error_code = str(error)
+                    
+                    # Check if it's a rate limit error
+                    if 'rate limit' in error_code.lower() or '429' in error_code or 'quota' in error_code.lower():
+                        print(f"  Day {day}: API key #{current_cred} exhausted (rate limit)")
+                        exhausted_credentials.add(credential_index)
+                        credential_index = (credential_index + 1) % len(api_credentials_list)
+                        # Don't set success=True, will try next credential
+                    else:
+                        print(f"  Day {day}: API Error - {error}")
+                        success = True  # Other errors shouldn't trigger retry
+                        credential_index = (credential_index + 1) % len(api_credentials_list)
+                        
+                except Exception as e:
+                    print(f"  Day {day}: Error - {e}")
+                    success = True  # Don't retry on general errors
+                    credential_index = (credential_index + 1) % len(api_credentials_list)
             
-            time.sleep(1)  # Wait 1 second between calls
+            # Small delay between calls
+            if success:
+                time.sleep(1)
         
-        print(f"  ✓ Completed {origin} → {destination}\n")
+        print(f"  ✓ Completed {origin} → {destination}")
+        if exhausted_credentials:
+            print(f"  📊 Exhausted API keys: {len(exhausted_credentials)}/{len(api_credentials_list)}\n")
+        else:
+            print()
     
     print(f"\nCollection complete!")
     print(f"Total API calls: {api_calls}")
     print(f"Total flights collected: {len(all_flights)}")
+    if exhausted_credentials:
+        print(f"⚠️  API keys exhausted: {len(exhausted_credentials)}/{len(api_credentials_list)}")
     
     return pd.DataFrame(all_flights)
 
@@ -169,14 +212,15 @@ if __name__ == "__main__":
     if not dropbox_token:
         raise ValueError("DROPBOX_ACCESS_TOKEN not found in environment variables")
     
-    # ⚠️ HARDCODED CREDENTIALS - All 3 API key pairs
+    # ⚠️ HARDCODED 4 API key pairs
     api_credentials = [
         ("tJXhK2xH0TNcJSYJP67uuv14b9xGUvAb", "z4OPCHJTAsLHQQvu"),
         ("KQThHXQfHxA8YaBIdXCm9cW9ZoJpwwV2", "GqLFKVvWBFoUhyiJ"),
-        ("RAoNuXvgY1o9ssOCOUuB15GQm9BXYiJN", "BgFW0IWAHRI9Wnri")
+        ("RAoNuXvgY1o9ssOCOUuB15GQm9BXYiJN", "BgFW0IWAHRI9Wnri"),
+        ("tJXhK2xH0TNcJSYJP67uuv14b9xGUvAb", "z4OPCHJTAsLHQQvu") 
     ]
     
-    # Define your airports
+    # Define airports of interest
     east_coast = ['JFK', 'BOS', 'PHL']
     west_coast = ['LAX', 'SFO', 'SEA']
     
@@ -185,7 +229,7 @@ if __name__ == "__main__":
     print("FLIGHT DATA COLLECTION STARTING")
     print("=" * 60)
     df = collect_cross_country_flights(
-        api_credentials,  # Pass list of credentials
+        api_credentials,
         east_coast, 
         west_coast, 
         days_ahead=14

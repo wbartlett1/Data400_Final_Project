@@ -35,7 +35,7 @@ jobs:
     # NEW: Save data as artifact even if Dropbox fails
     - name: Upload data as artifact (backup)
       if: always()  # This runs even if previous steps fail
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: flight-data-${{ github.run_number }}
         path: data/*.csv

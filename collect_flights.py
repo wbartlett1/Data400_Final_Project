@@ -175,17 +175,24 @@ def collect_cross_country_flights(api_credentials_list, east_coast, west_coast,
     return pd.DataFrame(all_flights)
 
 
-def upload_to_dropbox(file_path, dropbox_token, dropbox_folder="/flight_data"):
+def upload_to_dropbox(file_path, app_key, app_secret, refresh_token, dropbox_folder="/flight_data"):
     """
-    Upload a file to Dropbox
+    Upload a file to Dropbox using refresh token (never expires)
     
     Args:
         file_path: Local path to the file
-        dropbox_token: Dropbox access token
+        app_key: Dropbox app key
+        app_secret: Dropbox app secret
+        refresh_token: Dropbox refresh token
         dropbox_folder: Destination folder in Dropbox (default: /flight_data)
     """
     try:
-        dbx = dropbox.Dropbox(dropbox_token)
+        # Create Dropbox client with refresh token
+        dbx = dropbox.Dropbox(
+            app_key=app_key,
+            app_secret=app_secret,
+            oauth2_refresh_token=refresh_token
+        )
         
         # Get filename
         filename = os.path.basename(file_path)
@@ -206,21 +213,23 @@ def upload_to_dropbox(file_path, dropbox_token, dropbox_folder="/flight_data"):
 
 
 if __name__ == "__main__":
-    # Get Dropbox token from environment variable
-    dropbox_token = os.environ.get('DROPBOX_ACCESS_TOKEN')
+    # Get Dropbox credentials from environment variables
+    dropbox_app_key = os.environ.get('DROPBOX_APP_KEY')
+    dropbox_app_secret = os.environ.get('DROPBOX_APP_SECRET')
+    dropbox_refresh_token = os.environ.get('DROPBOX_REFRESH_TOKEN')
     
-    if not dropbox_token:
-        raise ValueError("DROPBOX_ACCESS_TOKEN not found in environment variables")
+    if not all([dropbox_app_key, dropbox_app_secret, dropbox_refresh_token]):
+        raise ValueError("Missing Dropbox credentials in environment variables")
     
-    # ⚠️ HARDCODED 4 API key pairs
+    # ⚠️ HARDCODED CREDENTIALS - All 4 API key pairs
     api_credentials = [
         ("tJXhK2xH0TNcJSYJP67uuv14b9xGUvAb", "z4OPCHJTAsLHQQvu"),
         ("KQThHXQfHxA8YaBIdXCm9cW9ZoJpwwV2", "GqLFKVvWBFoUhyiJ"),
         ("RAoNuXvgY1o9ssOCOUuB15GQm9BXYiJN", "BgFW0IWAHRI9Wnri"),
-        ("tJXhK2xH0TNcJSYJP67uuv14b9xGUvAb", "z4OPCHJTAsLHQQvu") 
+        ("tJXhK2xH0TNcJSYJP67uuv14b9xGUvAb", "z4OPCHJTAsLHQQvu")
     ]
     
-    # Define airports of interest
+    # Define your airports
     east_coast = ['JFK', 'BOS', 'PHL']
     west_coast = ['LAX', 'SFO', 'SEA']
     
@@ -254,7 +263,7 @@ if __name__ == "__main__":
     print("=" * 60)
     print("UPLOADING TO DROPBOX")
     print("=" * 60)
-    upload_to_dropbox(filename, dropbox_token)
+    upload_to_dropbox(filename, dropbox_app_key, dropbox_app_secret, dropbox_refresh_token)
     
     print("=" * 60)
     print("ALL OPERATIONS COMPLETE")

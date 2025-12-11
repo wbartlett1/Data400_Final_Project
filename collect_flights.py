@@ -138,17 +138,19 @@ def collect_cross_country_flights(api_credentials_list, east_coast, west_coast,
                     credential_index = (credential_index + 1) % len(api_credentials_list)
                     
                 except ResponseError as error:
-                    error_code = str(error)
+                    # Get detailed error information
+                    error_details = error.response.body if hasattr(error, 'response') else str(error)
+                    error_code = error.code if hasattr(error, 'code') else 'unknown'
                     
                     # Check if it's a rate limit error
-                    if 'rate limit' in error_code.lower() or '429' in error_code or 'quota' in error_code.lower():
+                    if 'rate limit' in str(error_details).lower() or error_code == 429 or 'quota' in str(error_details).lower():
                         print(f"  Day {day}: API key #{current_cred} exhausted (rate limit)")
                         exhausted_credentials.add(credential_index)
                         credential_index = (credential_index + 1) % len(api_credentials_list)
-                        # Don't set success=True, will try next credential
                     else:
-                        print(f"  Day {day}: API Error - {error}")
-                        success = True  # Other errors shouldn't trigger retry
+                        # Print detailed error for debugging
+                        print(f"  Day {day}: API Error [{error_code}] - {error_details}")
+                        success = True
                         credential_index = (credential_index + 1) % len(api_credentials_list)
                         
                 except Exception as e:
@@ -221,7 +223,7 @@ if __name__ == "__main__":
     if not all([dropbox_app_key, dropbox_app_secret, dropbox_refresh_token]):
         raise ValueError("Missing Dropbox credentials in environment variables")
     
-    # ⚠️ HARDCODED CREDENTIALS - All 4 API key pairs
+    # ⚠️ HARDCODED CREDENTIALS
     api_credentials = [
         ("tJXhK2xH0TNcJSYJP67uuv14b9xGUvAb", "z4OPCHJTAsLHQQvu"),
         ("KQThHXQfHxA8YaBIdXCm9cW9ZoJpwwV2", "GqLFKVvWBFoUhyiJ"),

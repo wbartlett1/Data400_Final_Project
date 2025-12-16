@@ -4,12 +4,6 @@
   <img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800" alt="Airplane in sky">
 </p>
 
-> *Predicting flight prices using machine learning and real-time data from the Amadeus API*
-
-[![Data Collection Status](https://github.com/wbartlett1/Data400_Final_Project/workflows/Collect%20Flight%20Data/badge.svg)](https://github.com/wbartlett1/Data400_Final_Project/actions)
-![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
-
 ---
 
 ## 📋 Table of Contents
@@ -28,26 +22,28 @@
 
 ## 🎯 Introduction
 
-Welcome to my Data 400 capstone project! 👋 
+Hi! Welcome to our Data 400 capstone project! 👋 
 
-This project tackles a question we've all wondered about: **Can we predict flight prices?** Using machine learning and automated data collection from the Amadeus Flight API, I've built a system that gathers real-time flight data across major US airports and develops predictive models to forecast ticket prices.
+This project aims to address the question: **Can we predict flight prices?**
+Using machine learning and automated data collection from the Amadeus Flight API, We've built a project that gathers real-time flight data for major cross-country flight patterns and develops predictive models to forecast ticket prices.
 
-Why does this matter? Airlines use complex algorithms to dynamically price tickets based on demand, seasonality, route popularity, and countless other factors. By analyzing these patterns, we can help travelers make more informed decisions about when to book their flights! 💰✈️
+**Why does this matter?**
+Airlines use complex algorithms to dynamically price tickets based on demand, seasonality, route popularity, and countless other factors. By analyzing these patterns, we can help travelers make more informed decisions about when to book their flights! 💰✈️
 
 ---
 
-## 🔍 Project Overview
+## 📊 Project Overview
 
 ### Key Features
-- 🤖 **Automated Data Collection**: GitHub Actions workflow runs daily to collect fresh flight data
-- 🌐 **Comprehensive Coverage**: Tracks flights across major US airports
-- 📊 **Large-Scale Dataset**: 200,000+ flight observations collected
-- 🧠 **Machine Learning Models**: Multiple ML approaches to predict flight prices
-- 📈 **Real-Time API Integration**: Uses Amadeus Flight Offers Search API
+- **Robust Data Workflow**: GitHub Actions run our workflow 2x daily to collect up-to-date flight data
+- **Real-Time API Integration**: Uses Amadeus Flight Offers Search API
+- **Large-Scale Dataset**: over 600,000 observations collected
+- **Machine Learning Models**: Multiple ML approaches to predict flight prices
+- **Quality Data Visualizations**: Many visualizations showing the capabilities of our data
 
 ### Technologies Used
-- **Python 3.8+** for data processing and modeling
-- **Amadeus API** for real-time flight data
+- **Python 3.8+** for data processing, visualizaing, and modeling
+- **Amadeus API** for data collection
 - **GitHub Actions** for automated workflows
 - **Pandas & NumPy** for data manipulation
 - **Scikit-learn** for machine learning
@@ -76,30 +72,31 @@ Data400_Final_Project/
 ├── collect_flights.py          # Main data collection script
 ├── requirements.txt            # Python package dependencies
 ├── .gitignore                 # Git ignore rules
-└── README.md                  # You are here! 📍
+└── README.md                  # You are here
 ```
 
 ### 📄 File Descriptions
 
 #### `collect_flights.py`
-The heart of the data collection system! This script:
+This script:
 - Connects to the Amadeus API using secure credentials
 - Queries flight offers for major airport routes
 - Handles pagination and rate limiting
 - Stores data in structured CSV format
+- Uploads data directly to Dropbox
 - Includes error handling and logging
 
 #### `.github/workflows/`
-Contains the GitHub Actions configuration that automatically runs `collect_flights.py` on a schedule. This ensures we're constantly gathering fresh data without manual intervention.
+Contains the GitHub Actions configuration that automatically runs `collect_flights.py` on a schedule. This ensures we're constantly gathering fresh data without manual intervention. The workflow runs twice daily at 12:00 AM and 12:00 PM UTC.
 
 #### `code/`
 Houses all analysis and modeling scripts:
-- **Exploratory Data Analysis**: Understanding price distributions, seasonal patterns, and route popularity
+- **Exploratory Data Analysis**: Understanding price distributions, seasonal patterns, route popularity, and much nmore!
 - **Feature Engineering**: Creating meaningful predictors from raw data
 - **Modeling**: Building and evaluating machine learning models
 
 #### `data/`
-Stores all collected flight data in organized subdirectories. *Note: Large data files are gitignored to keep the repo lightweight.*
+Stores a sample of the data for our project. *Note: Large data files are gitignored to keep the repo lightweight.*
 
 #### `requirements.txt`
 Lists all Python packages needed to run the project. Install with:
@@ -116,32 +113,28 @@ pip install -r requirements.txt
 The automated data collection pipeline follows these steps:
 
 1. **GitHub Actions Trigger** 📅
-   - Workflow runs daily at scheduled times
+   - Workflow runs twice daily
    - Can also be triggered manually
 
 2. **API Authentication** 🔐
-   - Securely retrieves Amadeus API credentials from GitHub Secrets
-   - Generates OAuth access token
+   - Authenticates Amadeus API credentials
 
-3. **Flight Search** 🔍
+4. **Flight Search** 🔍
    - Queries major US airport pairs (e.g., JFK↔LAX, ORD↔MIA)
    - Searches for flights across multiple departure dates
    - Collects various cabin classes and booking options
 
-4. **Data Storage** 💾
-   - Appends new data to existing datasets
-   - Maintains data quality and consistency
-   - Timestamps all collections for tracking
+5. **Data Storage** 💾
+   - New data is saved to Dropbox as a .csv with a date and time label
 
-5. **Error Handling** ⚠️
+6. **Error Handling** ⚠️
    - Logs API errors and rate limit issues
    - Implements retry logic for failed requests
    - Sends notifications for critical failures
 
 ### API Rate Limits
-- The Amadeus API has usage limits (check current tier)
-- Collection script respects rate limits automatically
-- Data is collected strategically to maximize coverage
+- The Amadeus API has very strict usage limits
+- Multiple API keys are used in each data collection run
 
 ---
 
@@ -153,15 +146,15 @@ Each flight observation includes the following variables:
 
 | Variable Name | Type | Description |
 |--------------|------|-------------|
-| `flight_id` | string | Unique identifier for the flight offer |
+| `flight_id` | string | Unique identifier for the specific flight - engineered |
 | `origin` | string | Origin airport code (e.g., 'JFK', 'LAX') |
 | `destination` | string | Destination airport code |
 | `departure_date` | datetime | Scheduled departure date and time |
 | `arrival_date` | datetime | Scheduled arrival date and time |
-| `price` | float | **Target variable** - Flight price in USD |
-| `currency` | string | Currency of the price (typically 'USD') |
+| `price` | float | **Target variable** - Flight price in Euros |
+| `currency` | string | Currency of the price (in EUR, transformed to USD) |
 | `airline` | string | Operating airline carrier code |
-| `stops` | integer | Number of stops (0 = nonstop, 1 = one stop, etc.) |
+| `stops` | integer | Number of stops (e.g. 0 = nonstop, etc.) |
 | `duration` | string | Total flight duration (e.g., 'PT5H30M') |
 | `cabin_class` | string | Booking class (ECONOMY, PREMIUM_ECONOMY, BUSINESS, FIRST) |
 | `seats_available` | integer | Number of seats remaining at this price |
@@ -171,7 +164,7 @@ Each flight observation includes the following variables:
 
 ### Engineered Features
 
-Additional features created for modeling:
+Features used for Modeling: COME BACK HERE
 
 - **Temporal Features**
   - `day_of_week`: Departure day (Monday=0 to Sunday=6)
@@ -258,7 +251,7 @@ python code/modeling.py
 
 ### Sample Visualizations
 
-*Coming soon: Add screenshots of your analysis here!*
+SHOW HERE!
 
 - Price distribution across routes
 - Seasonal pricing trends
@@ -277,20 +270,11 @@ python code/modeling.py
 
 ---
 
-## 🤝 Contributing
-
-This is an academic capstone project, but feedback and suggestions are always welcome! Feel free to:
-
-- 🐛 Report bugs or data issues
-- 💡 Suggest improvements to data collection
-- 📊 Share ideas for additional analyses
-- 🔧 Propose code optimizations
-
 ### Discussion & Questions
 
-Have questions about the project? Want to discuss the methodology? 
+Have any questions? Contact us at our email below or open an issue!
 
-- 📧 Email: [your-email@dickinson.edu]
+- 📧 Email: bartletw@dickinson.edu| KEVIN EMAIL
 - 💬 Open an [Issue](https://github.com/wbartlett1/Data400_Final_Project/issues)
 - 🎓 This project was completed as part of Data 400 at Dickinson College
 
@@ -299,31 +283,24 @@ Have questions about the project? Want to discuss the methodology?
 ## 📚 References & Resources
 
 - [Amadeus for Developers](https://developers.amadeus.com/)
-- [Flight Price Prediction Research Papers](add-links)
 - [Scikit-learn Documentation](https://scikit-learn.org/)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 
 ---
 
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
 ## 🙏 Acknowledgments
 
-- **Professor [Name]** and the Data 400 course for guidance and support
-- **Dickinson College** Data Analytics Department
+- **Professor Bilen** 
+- **Dickinson College** 
 - **Amadeus** for providing API access
 - The data science community for inspiration and resources
 
 ---
 
 <p align="center">
-  Made with ☕ and 💻 by Will Bartlett<br>
-  Dickinson College Class of 2025<br>
-  <i>Data Analytics & Quantitative Economics Major</i>
+  Made with by Will Bartlett & Kevin Tran<br>
+  Dickinson College<br>
+  <i>Data Analytics Department</i>
 </p>
 
 ---

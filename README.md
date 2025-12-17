@@ -16,8 +16,6 @@
 - [Usage](#-usage)
 - [Exploratory Analysis](#-exploratory-analysis)
 - [Machine Learning Model Performance](#-machine-learning-model-performance)
-- [Contributing](#-contributing)
-- [Contact & Aknowledgments](#--questions)
 
 ---
 
@@ -254,20 +252,25 @@ python code/modeling.ipynb
 
 ## 📈 Exploratory Analysis
 
-**Price by Airline** <br>
+### Price by Airline <br>
 <img width="987" height="590" alt="image" src="https://github.com/user-attachments/assets/144bc5f0-6774-4092-9852-06050768662d" />
+brief description
 
-**Route-Level Visualization** <br>
+### Route-Level Visualization <br>
 <img width="1789" height="790" alt="image" src="https://github.com/user-attachments/assets/dd3f0b88-3e49-48b1-9292-debf68b7bd95" />
+brief description
 
-**Booking Window Visualization** <br>
+### Booking Window Visualization <br>
 <img width="989" height="590" alt="image" src="https://github.com/user-attachments/assets/6c1faaf5-21ca-48b3-af4d-1575c28aafb1" />
+brief description
 
-**Temporal Visualization** <br>
+### Temporal Visualization <br>
 <img width="1589" height="590" alt="image" src="https://github.com/user-attachments/assets/2293092f-bcac-457e-b6cb-326e1ded08db" />
+brief description
 
-**Bookable Seats Visualization** <br>
+### Bookable Seats Visualization <br>
 <img width="989" height="590" alt="image" src="https://github.com/user-attachments/assets/5a4d83a0-e82a-4485-84f8-e915ad115dc5" />
+brief description
 
 --
 
@@ -281,13 +284,14 @@ Machine learning models tackle the question: Can we predict a flight's next day 
 - Random Forest
 - XGBoost
 
-**Model Performance:**
+### Model Performance:
 <img width="989" height="590" alt="image" src="https://github.com/user-attachments/assets/5ab3faa2-7780-4d8a-8286-26c24ade07dc" />
 
-**Feature Importance:**
+### Feature Importance:
 <img width="995" height="789" alt="image" src="https://github.com/user-attachments/assets/9ae62f4c-8c90-4641-a024-f1c57829c107" />
 
 **Results Discussion**
+Discuss why tree models did better, what that means about data. Discuss what the feature importance means. Discuss what the MAE means and how predictive our models are.
 
 ---
 

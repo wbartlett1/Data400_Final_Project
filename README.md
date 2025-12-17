@@ -14,9 +14,10 @@
 - [Dataset Description](#-dataset-description)
 - [Installation & Setup](#-installation--setup)
 - [Usage](#-usage)
-- [Results & Analysis](#-results--analysis)
+- [Exploratory Analysis](#-exploratory-analysis)
+- [Machine Learning Model Performance](#-machine-learning-model-performance)
 - [Contributing](#-contributing)
-- [Contact](#-contact)
+- [Contact & Aknowledgments](#--questions)
 
 ---
 
@@ -251,7 +252,7 @@ python code/modeling.ipynb
 
 ---
 
-## 📈 Exploratory Analysis - Sample Visualizations
+## 📈 Exploratory Analysis
 
 **Price by Airline** <br>
 <img width="987" height="590" alt="image" src="https://github.com/user-attachments/assets/144bc5f0-6774-4092-9852-06050768662d" />

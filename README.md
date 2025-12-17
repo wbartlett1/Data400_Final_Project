@@ -24,10 +24,10 @@
 
 Hi! Welcome to our Data 400 capstone project! 👋 
 
-This project aims to address the question: **Can we predict flight prices?**
+This project aims to address the question: **Can we predict flight prices?**<br>
 Using machine learning and automated data collection from the Amadeus Flight API, We've built a project that gathers real-time flight data for major cross-country flight patterns and develops predictive models to forecast ticket prices.
 
-**Why does this matter?**
+**Why does this matter?**<br>
 Airlines use complex algorithms to dynamically price tickets based on demand, seasonality, route popularity, and countless other factors. By analyzing these patterns, we can help travelers make more informed decisions about when to book their flights! 💰✈️
 
 ---
@@ -56,23 +56,22 @@ Airlines use complex algorithms to dynamically price tickets based on demand, se
 ```
 Data400_Final_Project/
 │
-├── .github/workflows/          # GitHub Actions automation
-│   └── collect_flights.yml     # Scheduled workflow for daily data collection
+├── .github/workflows/           # GitHub Actions automation
+│   └── collect_flights.yml      # Scheduled workflow for daily data collection
 │
-├── code/                       # Analysis and modeling scripts
-│   ├── exploratory_analysis.py # EDA and data visualization
-│   ├── feature_engineering.py  # Feature creation and transformation
-│   └── modeling.py             # Machine learning models
+├── code/                         # Analysis and modeling scripts
+│   ├── EDA.ipynb                 # EDA & data visualization
+│   ├── data_concatination.ipynb  # Data concatenation (for saving example dataset)
+│   ├── feature_engineering.ipynb # Feature engineering and modeling preparation
+│   └── modeling.ipynb            # Machine learning models
 │
-├── data/                       # Flight data storage
-│   ├── raw/                    # Raw API responses
-│   ├── processed/              # Cleaned and processed datasets
-│   └── features_engineered/    # Engineered features for modeling
+├── data/                         # Flight data storage
+│   ├── final_flight_data.csv     # Example dataset (first ~500,000 observations collected)
 │
-├── collect_flights.py          # Main data collection script
-├── requirements.txt            # Python package dependencies
-├── .gitignore                 # Git ignore rules
-└── README.md                  # You are here
+├── collect_flights.py            # Main data collection script
+├── requirements.txt              # Python package dependencies
+├── .gitignore                    # Git ignore rules
+└── README.md                     # You are here
 ```
 
 ### 📄 File Descriptions
@@ -96,7 +95,7 @@ Houses all analysis and modeling scripts:
 - **Modeling**: Building and evaluating machine learning models
 
 #### `data/`
-Stores a sample of the data for our project. *Note: Large data files are gitignored to keep the repo lightweight.*
+Stores a sample of the data for our project. *Note: Large data files are gitignored to avoid file size issues.*
 
 #### `requirements.txt`
 Lists all Python packages needed to run the project. Install with:
@@ -107,8 +106,6 @@ pip install -r requirements.txt
 ---
 
 ## 🔄 Data Collection
-
-### How It Works
 
 The automated data collection pipeline follows these steps:
 
@@ -140,7 +137,7 @@ The automated data collection pipeline follows these steps:
 
 ## 📊 Dataset Description
 
-### Data Variables
+### Amadeus Variables
 
 Each flight observation includes the following variables:
 
@@ -164,23 +161,30 @@ Each flight observation includes the following variables:
 
 ### Engineered Features
 
-Features used for Modeling: COME BACK HERE
+Features used for Modeling:
 
-- **Temporal Features**
-  - `day_of_week`: Departure day (Monday=0 to Sunday=6)
-  - `month`: Month of travel
-  - `is_weekend`: Boolean for weekend travel
-  - `is_holiday_season`: Peak travel periods
+- **Historical Prices**
+  - lagged price features
+  - rolling window statistics
   
 - **Route Features**
-  - `route_distance`: Approximate distance in miles
-  - `route_popularity`: Frequency of flights on this route
-  - `hub_airport`: Whether origin/destination is a major hub
+  - route competition features
+  - route durations
+  - route volatility
 
-- **Price History Features**
-  - `price_trend`: Direction of price movement
-  - `min_price_seen`: Lowest price observed for this route
-  - `price_percentile`: Where current price falls historically
+- **Temporal Features**
+  - red-eye indicators
+  - time of day indicators
+  - flight durations
+  - departure day features
+ 
+- **Airline Features**
+  - airline volatility
+  - premium vs lowcost carrier
+
+- **Bookable Seats Features**
+  - distance from 4 bookable seats (see EDA)
+  - scarcity indicators
 
 ---
 
@@ -228,55 +232,71 @@ Run manual data collection:
 python collect_flights.py
 ```
 
-Collect for specific routes:
-```bash
-python collect_flights.py --routes JFK-LAX ORD-MIA
-```
-
 ### Running Analysis
 
 Explore the data:
 ```bash
-python code/exploratory_analysis.py
+python code/EDA.ipynb
+```
+
+Prepare data for modeling:
+```bash
+python code/feature_engineering.ipynb
 ```
 
 Train models:
 ```bash
-python code/modeling.py
+python code/modeling.ipynb
 ```
 
 ---
 
-## 📈 Results & Analysis
+## 📈 Exploratory Analysis - Sample Visualizations
 
-### Sample Visualizations
+**Price by Airline** <br>
+<img width="987" height="590" alt="image" src="https://github.com/user-attachments/assets/144bc5f0-6774-4092-9852-06050768662d" />
 
-SHOW HERE!
+**Route-Level Visualization** <br>
+<img width="1789" height="790" alt="image" src="https://github.com/user-attachments/assets/dd3f0b88-3e49-48b1-9292-debf68b7bd95" />
 
-- Price distribution across routes
-- Seasonal pricing trends
-- Impact of booking window on prices
-- Model performance comparisons
+**Booking Window Visualization** <br>
+<img width="989" height="590" alt="image" src="https://github.com/user-attachments/assets/6c1faaf5-21ca-48b3-af4d-1575c28aafb1" />
 
-### Key Findings
+**Temporal Visualization** <br>
+<img width="1589" height="590" alt="image" src="https://github.com/user-attachments/assets/2293092f-bcac-457e-b6cb-326e1ded08db" />
 
-📌 **Booking Window Effect**: Prices typically increase as departure date approaches, with optimal booking around 6-8 weeks in advance
+**Bookable Seats Visualization** <br>
+<img width="989" height="590" alt="image" src="https://github.com/user-attachments/assets/5a4d83a0-e82a-4485-84f8-e915ad115dc5" />
 
-📌 **Day of Week Impact**: Tuesday and Wednesday flights tend to be cheaper than Friday and Sunday departures
+--
 
-📌 **Route Characteristics**: Hub-to-hub routes show more price volatility due to higher competition
+## 📈 Machine Learning Model Performance
 
-📌 **Model Performance**: [Add your best model's performance metrics here]
+Machine learning models tackle the question: Can we predict a flight's next day price?
+
+**Models Tested:**<br>
+- Linear Regression
+- Decision Tree
+- Random Forest
+- XGBoost
+
+**Model Performance:**
+<img width="989" height="590" alt="image" src="https://github.com/user-attachments/assets/5ab3faa2-7780-4d8a-8286-26c24ade07dc" />
+
+**Feature Importance:**
+<img width="995" height="789" alt="image" src="https://github.com/user-attachments/assets/9ae62f4c-8c90-4641-a024-f1c57829c107" />
+
+**Results Discussion**
 
 ---
 
-### Discussion & Questions
+### ❓ Questions ❓
 
 Have any questions? Contact us at our email below or open an issue!
 
 - 📧 Email: bartletw@dickinson.edu| KEVIN EMAIL
 - 💬 Open an [Issue](https://github.com/wbartlett1/Data400_Final_Project/issues)
-- 🎓 This project was completed as part of Data 400 at Dickinson College
+- 🎓 This project was completed for the Data Analytics Capstone at Dickinson College
 
 ---
 
@@ -298,7 +318,7 @@ Have any questions? Contact us at our email below or open an issue!
 ---
 
 <p align="center">
-  Made with by Will Bartlett & Kevin Tran<br>
+  Made by Will Bartlett & Kevin Tran<br>
   Dickinson College<br>
   <i>Data Analytics Department</i>
 </p>

@@ -116,7 +116,7 @@ The automated data collection pipeline follows these steps:
    - Authenticates Amadeus API credentials
 
 4. **Flight Search** 🔍
-   - Queries major US airport pairs (e.g., JFK↔LAX, ORD↔MIA)
+   - Queries major US airport pairs (e.g., JFK↔LAX)
    - Searches for flights across multiple departure dates
    - Collects various cabin classes and booking options
 

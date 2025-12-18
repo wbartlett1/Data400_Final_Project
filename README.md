@@ -36,7 +36,7 @@ Airlines use complex algorithms to dynamically price tickets based on demand, se
 ### Key Features
 - **Robust Data Workflow**: GitHub Actions run our workflow 2x daily to collect up-to-date flight data
 - **Real-Time API Integration**: Uses Amadeus Flight Offers Search API
-- **Large-Scale Dataset**: over 600,000 observations collected
+- **Large-Scale Dataset**: ~700,000 observations collected
 - **Machine Learning Models**: Multiple ML approaches to predict flight prices
 - **Quality Data Visualizations**: Many visualizations showing the capabilities of our data
 
@@ -60,7 +60,7 @@ Data400_Final_Project/
 │
 ├── code/                         # Analysis and modeling scripts
 │   ├── EDA.ipynb                 # EDA & data visualization
-│   ├── data_concatination.ipynb  # Data concatenation (for saving example dataset)
+│   ├── data_concatenation.ipynb  # Data concatenation (for saving example dataset)
 │   ├── feature_engineering.ipynb # Feature engineering and modeling preparation
 │   └── modeling.ipynb            # Machine learning models
 │
@@ -233,19 +233,11 @@ python collect_flights.py
 
 ### Running Analysis
 
-Explore the data:
+Open notebooks in Jupyter:
 ```bash
-python code/EDA.ipynb
-```
-
-Prepare data for modeling:
-```bash
-python code/feature_engineering.ipynb
-```
-
-Train models:
-```bash
-python code/modeling.ipynb
+jupyter notebook code/EDA.ipynb
+jupyter notebook code/feature_engineering.ipynb  
+jupyter notebook code/modeling.ipynb
 ```
 
 ---
@@ -254,29 +246,35 @@ python code/modeling.ipynb
 
 ### Price by Airline <br>
 <img width="987" height="590" alt="image" src="https://github.com/user-attachments/assets/144bc5f0-6774-4092-9852-06050768662d" />
-brief description
+We can see which airlines are higher-end and which are low-cost carriers. We can use this to improve our model's predictive power through engineering related features.
 
 ### Route-Level Visualization <br>
 <img width="1789" height="790" alt="image" src="https://github.com/user-attachments/assets/dd3f0b88-3e49-48b1-9292-debf68b7bd95" />
-brief description
+We can see which routes are more expensive than others.
 
 ### Booking Window Visualization <br>
 <img width="989" height="590" alt="image" src="https://github.com/user-attachments/assets/6c1faaf5-21ca-48b3-af4d-1575c28aafb1" />
-brief description
+We can see the pricing trends by how many days before departure the flight's price is observed. There is a clear drop-off at 7 days out, which can help us with modeling and feature engineering.
 
 ### Temporal Visualization <br>
 <img width="1589" height="590" alt="image" src="https://github.com/user-attachments/assets/2293092f-bcac-457e-b6cb-326e1ded08db" />
-brief description
+Price by day of week and time of day. 
 
 ### Bookable Seats Visualization <br>
 <img width="989" height="590" alt="image" src="https://github.com/user-attachments/assets/5a4d83a0-e82a-4485-84f8-e915ad115dc5" />
-brief description
+Price by how many seats are left bookable. We can see the drop-off at 4 bookable seats, which can help us with modeling and feature engineering.
 
 ---
 
 ## 📈 Machine Learning Model Performance
 
-Machine learning models tackle the question: Can we predict a flight's next day price?
+Machine learning models tackle the question: Can we predict a tomorrow's price for a cross-country flight?
+
+**Modeling Approach:**
+- 80/20 temporal split
+- Hyperparameter tuning via GridSearchCV & RandomizedSearchCV
+- 3-fold cross-validation
+- Evaluation Metric: Mean Absolute Error (MAE)
 
 **Models Tested:**<br>
 - Linear Regression
@@ -286,12 +284,14 @@ Machine learning models tackle the question: Can we predict a flight's next day 
 
 ### Model Performance:
 <img width="989" height="590" alt="image" src="https://github.com/user-attachments/assets/5ab3faa2-7780-4d8a-8286-26c24ade07dc" />
+With our best model, Random Forest, we can predict the price of a cross-country flight tomorrow within $15 on average! This model has an R² of 0.991, explaining over 99% of the variation in tomorrow's price.
 
 ### Feature Importance:
 <img width="995" height="789" alt="image" src="https://github.com/user-attachments/assets/9ae62f4c-8c90-4641-a024-f1c57829c107" />
+Price history and trends explain ~91.7% of the model's predictive power. Other important features are related to airline and route volatility, competition indicators, and more. 
 
 **Results Discussion**
-Discuss why tree models did better, what that means about data. Discuss what the feature importance means. Discuss what the MAE means and how predictive our models are.
+The superiority of the tree models indicate a non-linear relationship between features and the target. We have highly predictive models, which can help us understand pricing strategies and tendencies. Using this model, we could help people save money on flights! This project is for academic purposes only.
 
 ---
 
@@ -299,7 +299,7 @@ Discuss why tree models did better, what that means about data. Discuss what the
 
 Have any questions? Contact us at our email below or open an issue!
 
-- 📧 Email: bartletw@dickinson.edu| KEVIN EMAIL
+- 📧 Email: bartletw@dickinson.edu | tranqu@dickinson.edu
 - 💬 Open an [Issue](https://github.com/wbartlett1/Data400_Final_Project/issues)
 - 🎓 This project was completed for the Data Analytics Capstone at Dickinson College
 

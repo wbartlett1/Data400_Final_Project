@@ -318,7 +318,6 @@ Have any questions? Contact us at our email below or open an issue!
 - **Professor Bilen** 
 - **Dickinson College** 
 - **Amadeus** for providing API access
-- The data science community for inspiration and resources
 
 ---
 

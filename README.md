@@ -290,7 +290,7 @@ With our best model, Random Forest, we can predict the price of a cross-country 
 <img width="995" height="789" alt="image" src="https://github.com/user-attachments/assets/9ae62f4c-8c90-4641-a024-f1c57829c107" />
 Price history and trends explain ~91.7% of the model's predictive power. Other important features are related to airline and route volatility, competition indicators, and more. 
 
-**Results Discussion**
+### Results Discussion
 The superiority of the tree models indicate a non-linear relationship between features and the target. We have highly predictive models, which can help us understand pricing strategies and tendencies. Using this model, we could help people save money on flights! This project is for academic purposes only.
 
 ---

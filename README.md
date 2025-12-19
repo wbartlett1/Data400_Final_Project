@@ -15,6 +15,7 @@
 - [Installation & Setup](#-installation--setup)
 - [Usage](#-usage)
 - [Exploratory Analysis](#-exploratory-analysis)
+- [Interactive Aircraft Usage Dashboard](#️-interactive-aircraft-usage-dashboard)
 - [Machine Learning Model Performance](#-machine-learning-model-performance)
 
 ---
@@ -41,12 +42,14 @@ Airlines use complex algorithms to dynamically price tickets based on demand, se
 - **Quality Data Visualizations**: Many visualizations showing the capabilities of our data
 
 ### Technologies Used
-- **Python 3.8+** for data processing, visualizaing, and modeling
+- **Python 3.8+** for data processing, visualizing, and modeling
 - **Amadeus API** for data collection
 - **GitHub Actions** for automated workflows
 - **Pandas & NumPy** for data manipulation
 - **Scikit-learn** for machine learning
 - **Matplotlib/Seaborn** for visualization
+- **Dash & Plotly** for interactive dashboard
+- **ExchangeRate-API** for live currency conversion
 
 ---
 
@@ -62,7 +65,8 @@ Data400_Final_Project/
 │   ├── EDA.ipynb                 # EDA & data visualization
 │   ├── data_concatenation.ipynb  # Data concatenation (for saving example dataset)
 │   ├── feature_engineering.ipynb # Feature engineering and modeling preparation
-│   └── modeling.ipynb            # Machine learning models
+│   ├── modeling.ipynb            # Machine learning models
+│   └── aircraft_dashboard.ipynb  # Interactive aircraft usage dashboard
 │
 ├── data/                         # Flight data storage
 │   ├── final_flight_data.csv     # Example dataset (first ~500,000 observations collected)
@@ -89,7 +93,7 @@ Contains the GitHub Actions configuration that automatically runs `collect_fligh
 
 #### `code/`
 Houses all analysis and modeling scripts:
-- **Exploratory Data Analysis**: Understanding price distributions, seasonal patterns, route popularity, and much nmore!
+- **Exploratory Data Analysis**: Understanding price distributions, seasonal patterns, route popularity, and much more!
 - **Feature Engineering**: Creating meaningful predictors from raw data
 - **Modeling**: Building and evaluating machine learning models
 
@@ -140,23 +144,28 @@ The automated data collection pipeline follows these steps:
 
 Each flight observation includes the following variables:
 
-| Variable Name | Type | Description |
-|--------------|------|-------------|
-| `flight_id` | string | Unique identifier for the specific flight - engineered |
-| `origin` | string | Origin airport code (e.g., 'JFK', 'LAX') |
-| `destination` | string | Destination airport code |
-| `departure_date` | datetime | Scheduled departure date and time |
-| `arrival_date` | datetime | Scheduled arrival date and time |
-| `price` | float | **Target variable** - Flight price in Euros |
-| `currency` | string | Currency of the price (in EUR, transformed to USD) |
-| `airline` | string | Operating airline carrier code |
-| `stops` | integer | Number of stops (e.g. 0 = nonstop, etc.) |
-| `duration` | string | Total flight duration (e.g., 'PT5H30M') |
-| `cabin_class` | string | Booking class (ECONOMY, PREMIUM_ECONOMY, BUSINESS, FIRST) |
-| `seats_available` | integer | Number of seats remaining at this price |
-| `booking_class` | string | Fare booking code |
-| `days_until_departure` | integer | Days between search date and departure |
-| `search_date` | datetime | When the price was recorded |
+| Variable Name | Type | Description | Source/Notes |
+|--------------|------|-------------|--------------|
+| `flight_id` | string | Unique identifier for the specific flight | Engineered |
+| `origin` | string | Origin airport code (e.g., 'JFK', 'LAX') | API |
+| `destination` | string | Destination airport code | API |
+| `departure_date` | datetime | Scheduled departure date and time | API |
+| `arrival_date` | datetime | Scheduled arrival date and time | API |
+| `price` | float | **Target variable** - Flight price in Euros | API |
+| `currency` | string | Currency of the price (EUR, transformed to USD) | API |
+| `airline` | string | Operating airline carrier code | API |
+| `airline_name` | string | Full airline name mapped from carrier code | Engineered - Dashboard |
+| `aircraft_type` | string | Aircraft model codes (e.g., '32Q', '73H') | API - Dashboard |
+| `stops` | integer | Number of stops (0 = nonstop, etc.) | API |
+| `duration` | string | Total flight duration (e.g., 'PT5H30M') | API |
+| `cabin_class` | string | Booking class (ECONOMY, PREMIUM_ECONOMY, BUSINESS, FIRST) | API |
+| `seats_available` | integer | Number of seats remaining at this price | API |
+| `booking_class` | string | Fare booking code | API |
+| `days_until_departure` | integer | Days between search date and departure | Engineered |
+| `search_date` | datetime | When the price was recorded | API |
+| `route` | string | Route identifier (e.g., 'JFK → LAX') | Engineered - Dashboard* |
+
+**Dashboard-exclusive variables are used in the interactive aircraft usage dashboard for filtering and visualization.*
 
 ### Engineered Features
 
@@ -238,6 +247,7 @@ Open notebooks in Jupyter:
 jupyter notebook code/EDA.ipynb
 jupyter notebook code/feature_engineering.ipynb  
 jupyter notebook code/modeling.ipynb
+jupyter notebook code/aircraft_dashboard.ipynb
 ```
 
 ---
@@ -263,6 +273,44 @@ Price by day of week and time of day.
 ### Bookable Seats Visualization <br>
 <img width="989" height="590" alt="image" src="https://github.com/user-attachments/assets/5a4d83a0-e82a-4485-84f8-e915ad115dc5" />
 Price by how many seats are left bookable. We can see the drop-off at 4 bookable seats, which can help us with modeling and feature engineering.
+
+---
+
+## 🎛️ Interactive Aircraft Usage Dashboard
+
+We've built an interactive dashboard to analyze aircraft usage patterns across our flight data.
+
+### Dashboard Features
+
+**12 Interactive Filters:**
+- **Basic Filters**: Airline, Route, Origin, Destination
+- **Aircraft Filters**: Aircraft Family, Aircraft Brand
+- **Flight Characteristics**: Number of Stops (checkboxes), Cabin Class (checkboxes), Red-eye flights
+- **Advanced Filters**: 
+  - Currency toggle (EUR/USD with live exchange rates)
+  - Days Until Departure slider (0-14 days)
+  - Departure Hour slider (24-hour)
+  - Price Range slider (with currency conversion)
+  - Flight Duration slider (in hours)
+  - Bookable Seats slider
+
+**Visualization:**
+- Interactive donut chart showing aircraft type distribution
+- Aircraft sorted by manufacturer (Airbus → Boeing → Bombardier → Embraer)
+- Labels shown only for aircraft types representing ≥5% of usage
+- Hover tooltips display aircraft family, brand, count, and percentage
+
+**Live Features:**
+- Real-time EUR to USD exchange rate via ExchangeRate-API
+- Dynamic currency conversion for price filters
+- Responsive filter panel with organized sections
+
+### Running the Dashboard
+```bash
+jupyter notebook code/aircraft_dashboard.ipynb
+```
+
+Run all cells, then access the dashboard at `http://127.0.0.1:8050/` (or `http://localhost:8050/` works too!)
 
 ---
 
